@@ -231,15 +231,13 @@ Beispiel: `Statistic_Yield_Day`, `Statistic_Autarky_Month`, `Statistic_CO2Saving
 
 ```perl
 # Device anlegen (IP des Plenticore im lokalen Netz)
-define Plenticore_Wechselrichter Plenticore 192.168.178.160
+define Plenticore_Wechselrichter Plenticore 192.168.178.123
 
 # Passwort einmalig setzen – erscheint NICHT in fhem.cfg:
 # set Plenticore_Wechselrichter password pvmaster
 
 attr Plenticore_Wechselrichter alias Plenticore Wechselrichter
 attr Plenticore_Wechselrichter interval 30
-attr Plenticore_Wechselrichter group Energie
-attr Plenticore_Wechselrichter room 90_System_PvAnlage
 
 attr Plenticore_Wechselrichter event-on-change-reading PvGenerator,Inverter,Battery,Battery_SoC,HomeConsumption,Grid
 attr Plenticore_Wechselrichter event-on-update-reading PvGenerator,Inverter,Battery,Battery_SoC,HomeConsumption,Grid
