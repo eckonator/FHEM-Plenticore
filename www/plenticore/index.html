@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kostal Plenticore | PV-Anlage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep:      #020609;
+      --bg-card:      rgba(4, 16, 32, 0.82);
+      --solar:        #f5c400;
+      --solar-dim:    rgba(245, 196, 0, 0.14);
+      --solar-glow:   rgba(245, 196, 0, 0.30);
+      --grid-in:      #ffa820;
+      --grid-in-dim:  rgba(255, 168, 32, 0.13);
+      --grid-out:     #8cb4d4;
+      --grid-out-dim: rgba(140, 180, 212, 0.10);
+      --bat-charge:   #3bbfff;
+      --bat-ch-dim:   rgba(59, 191, 255, 0.13);
+      --bat-dis:      #1a8fd4;
+      --bat-dis-dim:  rgba(26, 143, 212, 0.13);
+      --home:         #4dbe8a;
+      --home-dim:     rgba(77, 190, 138, 0.12);
+      --danger:       #ff4455;
+      --warn:         #ffcc44;
+      --text-1:       #e6f0fa;
+      --text-2:       rgba(230, 240, 250, 0.50);
+      --text-3:       rgba(230, 240, 250, 0.22);
+      --border:       rgba(245, 196, 0, 0.12);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html { height:100%; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg-deep); color:var(--text-1); min-height:100vh; overflow-x:hidden; }
+
+    /* ── BACKGROUND ── */
+    .scene { position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+    .scene-gradient {
+      position:absolute; inset:0;
+      background:
+        radial-gradient(ellipse 60% 45% at 50% -5%,  rgba(220,160,0,.10) 0%, transparent 58%),
+        radial-gradient(ellipse 40% 30% at 15% 20%,  rgba(59,191,255,.05) 0%, transparent 48%),
+        radial-gradient(ellipse 35% 28% at 85% 70%,  rgba(77,190,138,.04) 0%, transparent 44%),
+        linear-gradient(175deg, #020609 0%, #05101e 55%, #030810 100%);
+    }
+    .scene-lines {
+      position:absolute; inset:0;
+      background-image:repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(245,196,0,.004) 3px, rgba(245,196,0,.004) 4px);
+    }
+    .scene-glow {
+      position:absolute; top:-80px; left:-8%; width:116%; height:220px;
+      background:radial-gradient(ellipse 58% 52% at 50% 0%, rgba(180,130,0,.08) 0%, transparent 68%);
+      animation:glowPulse 7s ease-in-out infinite alternate;
+    }
+    @keyframes glowPulse { from{opacity:.4;transform:scaleX(.92)} to{opacity:1;transform:scaleX(1.08)} }
+
+    /* ── SOLAR PARTICLES ── */
+    .particles { position:absolute; inset:0; }
+    .particle {
+      position:absolute; border-radius:50%;
+      background:radial-gradient(circle, rgba(245,196,0,.85), rgba(245,196,0,.05));
+      animation:particleDrift linear infinite;
+    }
+    .particle:nth-child(1)  { width:2px; height:2px; top:8%;  left:12%;  animation-duration:22s; animation-delay:0s;   }
+    .particle:nth-child(2)  { width:1px; height:1px; top:20%; left:35%;  animation-duration:18s; animation-delay:3.5s; }
+    .particle:nth-child(3)  { width:2px; height:2px; top:5%;  left:58%;  animation-duration:25s; animation-delay:1.2s; }
+    .particle:nth-child(4)  { width:1px; height:1px; top:35%; left:80%;  animation-duration:20s; animation-delay:7s;   }
+    .particle:nth-child(5)  { width:2px; height:2px; top:50%; left:22%;  animation-duration:30s; animation-delay:4.8s; }
+    .particle:nth-child(6)  { width:1px; height:1px; top:65%; left:48%;  animation-duration:16s; animation-delay:9s;   }
+    .particle:nth-child(7)  { width:2px; height:2px; top:15%; left:70%;  animation-duration:28s; animation-delay:2.2s; }
+    .particle:nth-child(8)  { width:1px; height:1px; top:72%; left:90%;  animation-duration:19s; animation-delay:6.1s; }
+    .particle:nth-child(9)  { width:2px; height:2px; top:42%; left:5%;   animation-duration:24s; animation-delay:11s;  }
+    .particle:nth-child(10) { width:1px; height:1px; top:85%; left:62%;  animation-duration:21s; animation-delay:0.8s; }
+    @keyframes particleDrift {
+      0%   { transform:translate(0, 0);          opacity:0; }
+      8%   { opacity:1; }
+      88%  { opacity:.6; }
+      100% { transform:translate(38px, -70vh);   opacity:0; }
+    }
+
+    /* ── APP SHELL ── */
+    .app { position:relative; z-index:1; max-width:460px; margin:0 auto; padding:28px 18px 56px; min-height:100vh; }
+
+    /* ── HEADER ── */
+    .header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; }
+    .brand-name { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:300; letter-spacing:.16em; text-transform:uppercase; color:var(--text-1); line-height:1; }
+    .brand-tag  { font-size:9px; font-weight:500; letter-spacing:.32em; text-transform:uppercase; color:var(--solar); margin-top:5px; opacity:.82; }
+    .hdr-actions { display:flex; gap:8px; padding-top:4px; }
+    .icon-btn {
+      width:38px; height:38px; border-radius:50%;
+      background:rgba(245,196,0,.07); border:1px solid var(--border);
+      color:var(--text-2); display:flex; align-items:center; justify-content:center;
+      cursor:pointer; font-size:15px; backdrop-filter:blur(14px); transition:all .22s;
+    }
+    .icon-btn:hover, .icon-btn.active { background:rgba(245,196,0,.16); border-color:rgba(245,196,0,.45); color:var(--solar); }
+
+    /* ── SETTINGS ── */
+    .settings-panel { overflow:hidden; max-height:0; transition:max-height .38s ease, margin .38s ease; margin-bottom:0; }
+    .settings-panel.open { max-height:240px; margin-bottom:20px; }
+    .settings-inner { background:var(--bg-card); border:1px solid var(--border); border-radius:18px; padding:18px 20px; backdrop-filter:blur(24px); display:flex; flex-direction:column; gap:10px; }
+    .field-label { font-size:9px; font-weight:600; letter-spacing:.28em; text-transform:uppercase; color:var(--solar); display:block; margin-bottom:5px; }
+    .field-input {
+      width:100%; background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.08);
+      border-radius:10px; padding:10px 13px; color:var(--text-1);
+      font-family:'DM Sans',sans-serif; font-size:13px; outline:none; transition:border-color .2s;
+    }
+    .field-input:focus { border-color:rgba(245,196,0,.52); }
+
+    /* ── TAB BAR ── */
+    .tab-bar {
+      display:flex; gap:5px; margin-bottom:18px;
+      padding:4px; background:rgba(255,255,255,.04);
+      border:1px solid var(--border); border-radius:14px;
+    }
+    .tab-btn {
+      flex:1; padding:10px 6px; border:none; border-radius:10px;
+      font-family:'DM Sans',sans-serif; font-size:11px; font-weight:600;
+      letter-spacing:.18em; text-transform:uppercase; cursor:pointer;
+      background:transparent; color:var(--text-2); transition:all .24s;
+    }
+    .tab-btn.active { background:rgba(245,196,0,.14); color:var(--solar); box-shadow:0 0 20px rgba(245,196,0,.08); }
+    .tab-btn:hover:not(.active) { color:var(--text-1); }
+
+    /* ── STATUS ── */
+    .status-row { display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:18px; }
+    .status-chip {
+      display:inline-flex; align-items:center; gap:7px; padding:6px 13px 6px 10px;
+      border-radius:100px; font-size:10.5px; font-weight:500; letter-spacing:.07em;
+      text-transform:uppercase; border:1px solid transparent; transition:all .4s;
+    }
+    .status-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .status-chip.connected { background:var(--solar-dim); border-color:rgba(245,196,0,.32); color:var(--solar); }
+    .status-chip.connected .status-dot { background:var(--solar); box-shadow:0 0 7px rgba(245,196,0,.7); animation:dotPulse 2.4s ease-in-out infinite; }
+    .status-chip.error  { background:rgba(255,68,85,.1);  border-color:rgba(255,68,85,.28);  color:var(--danger); }
+    .status-chip.error  .status-dot { background:var(--danger); }
+    .status-chip.idle   { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.09); color:var(--text-2); }
+    .status-chip.idle   .status-dot { background:var(--text-3); }
+    @keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    .pv-chip {
+      display:inline-flex; align-items:center; gap:7px; padding:6px 13px 6px 11px;
+      border-radius:100px; font-size:10.5px; font-weight:500; letter-spacing:.07em;
+      text-transform:uppercase; border:1px solid transparent; transition:all .4s;
+    }
+    .pv-chip.active { background:var(--solar-dim); border-color:rgba(245,196,0,.38); color:var(--solar); animation:solarGlow 3s ease-in-out infinite alternate; }
+    .pv-chip.idle   { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.08); color:var(--text-3); }
+    @keyframes solarGlow { from{box-shadow:none} to{box-shadow:0 0 22px rgba(245,196,0,.18)} }
+
+    /* ── ENERGY FLOW SVG ── */
+    .flow-wrap {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:22px; padding:14px 10px; backdrop-filter:blur(20px);
+      margin-bottom:14px; overflow:hidden;
+    }
+    #flowSvg { width:100%; display:block; }
+
+    /* Flow line base style */
+    .fl-bg  { stroke:rgba(255,255,255,.055); stroke-width:2; fill:none; }
+    .fl-anim { stroke-width:2.2; fill:none; stroke-dasharray:7 14; transition:stroke .5s; }
+
+    @keyframes dashFwd { from{stroke-dashoffset:21} to{stroke-dashoffset:0} }
+    @keyframes dashRev { from{stroke-dashoffset:0}  to{stroke-dashoffset:21} }
+    .flow-fwd { animation:dashFwd 1.1s linear infinite; }
+    .flow-rev { animation:dashRev 1.1s linear infinite; }
+
+    /* ── CARDS ── */
+    .cards-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
+    .card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:18px; padding:15px; backdrop-filter:blur(20px);
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .card-full { grid-column:1 / -1; }
+    .card-header { display:flex; align-items:center; gap:9px; }
+    .card-icon {
+      width:30px; height:30px; border-radius:9px; display:flex; align-items:center;
+      justify-content:center; font-size:15px; flex-shrink:0;
+    }
+    .ci-solar  { background:var(--solar-dim); }
+    .ci-grid   { background:var(--grid-in-dim); }
+    .ci-home   { background:var(--home-dim); }
+    .ci-bat    { background:var(--bat-ch-dim); }
+    .card-title { font-size:9.5px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--text-2); }
+
+    .card-main { display:flex; flex-direction:column; gap:2px; }
+    .card-val  { font-size:26px; font-weight:400; color:var(--text-1); letter-spacing:-.01em; line-height:1; }
+    .card-val .u { font-size:13px; color:var(--text-2); }
+    .card-sub  { font-size:10.5px; color:var(--text-3); letter-spacing:.04em; }
+
+    .card-val.solar-v    { color:var(--solar); }
+    .card-val.grid-in-v  { color:var(--grid-in); }
+    .card-val.grid-out-v { color:var(--grid-out); }
+    .card-val.home-v     { color:var(--home); }
+    .card-val.bat-ch-v   { color:var(--bat-charge); }
+    .card-val.bat-dis-v  { color:var(--bat-dis); }
+
+    /* ── SOC BAR ── */
+    .soc-bar-wrap { display:flex; flex-direction:column; gap:5px; }
+    .soc-bar-head { display:flex; justify-content:space-between; align-items:baseline; }
+    .soc-bar-lbl  { font-size:9px; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:var(--text-3); }
+    .soc-bar-val  { font-size:13px; font-weight:500; color:var(--bat-charge); }
+    .soc-track    { height:5px; background:rgba(255,255,255,.07); border-radius:100px; overflow:hidden; }
+    .soc-fill     { height:100%; border-radius:100px; background:linear-gradient(90deg, var(--bat-dis), var(--bat-charge)); transition:width .9s cubic-bezier(.34,1.1,.64,1); }
+
+    /* ── STATISTICS ── */
+    .stat-head {
+      display:flex; align-items:center; gap:8px; cursor:pointer;
+      color:var(--text-3); font-size:10px; font-weight:500;
+      letter-spacing:.2em; text-transform:uppercase; padding:10px 8px;
+      border-radius:12px; transition:color .22s; user-select:none; margin:2px 0;
+    }
+    .stat-head:hover { color:var(--solar); }
+    .stat-arrow { font-size:12px; transition:transform .3s; }
+    .stat-head.open .stat-arrow { transform:rotate(180deg); }
+    .stat-panel { overflow:hidden; max-height:0; transition:max-height .45s ease, margin .4s ease; margin-bottom:0; }
+    .stat-panel.open { max-height:500px; margin-bottom:10px; }
+
+    .stat-tabs { display:flex; gap:4px; margin-bottom:12px; padding:3px; background:rgba(255,255,255,.04); border-radius:11px; }
+    .stat-tab {
+      flex:1; padding:8px 4px; border:none; border-radius:8px;
+      font-family:'DM Sans',sans-serif; font-size:10px; font-weight:600;
+      letter-spacing:.14em; text-transform:uppercase; cursor:pointer;
+      background:transparent; color:var(--text-2); transition:all .22s;
+    }
+    .stat-tab.active { background:rgba(245,196,0,.13); color:var(--solar); }
+    .stat-tab:hover:not(.active) { color:var(--text-1); }
+
+    .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:13px; backdrop-filter:blur(20px); }
+    .stat-label { font-size:8.5px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--text-3); margin-bottom:5px; }
+    .stat-val   { font-size:20px; font-weight:400; color:var(--text-1); }
+    .stat-val .u { font-size:11px; color:var(--text-2); }
+    .stat-val.solar-v   { color:var(--solar); }
+    .stat-val.home-v    { color:var(--home); }
+    .stat-val.autarky-v { color:var(--bat-charge); }
+    .stat-val.own-v     { color:var(--grid-in); }
+
+    /* ── DIVIDER ── */
+    .divider { height:1px; background:rgba(245,196,0,.07); margin:2px 0; }
+
+    /* ── ACTION ROW ── */
+    .action-row { display:flex; gap:10px; margin-top:12px; }
+    .btn-refresh {
+      flex:1; padding:16px; border-radius:16px;
+      background:rgba(245,196,0,.08); border:1px solid rgba(245,196,0,.2);
+      color:var(--solar); font-family:'DM Sans',sans-serif;
+      font-size:11.5px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+      cursor:pointer; display:flex; align-items:center; justify-content:center; gap:9px; transition:all .22s;
+    }
+    .btn-refresh:hover { background:rgba(245,196,0,.15); border-color:rgba(245,196,0,.48); box-shadow:0 0 28px rgba(245,196,0,.08); }
+    .btn-refresh:active { transform:scale(.98); }
+    .refresh-ico { font-size:16px; display:inline-block; }
+    .btn-refresh.spinning .refresh-ico { animation:spinIcon .8s linear infinite; }
+    @keyframes spinIcon { to{transform:rotate(360deg)} }
+
+    /* ── FOOTER ── */
+    .footer-info { text-align:center; margin-top:16px; display:flex; flex-direction:column; gap:5px; }
+    .fault-line  { font-size:11.5px; color:var(--text-3); letter-spacing:.04em; min-height:16px; transition:color .3s; }
+    .fault-line.err { color:var(--danger); }
+    .update-line { font-size:10px; color:var(--text-3); letter-spacing:.08em; }
+
+    /* ── HISTORY RANGE ── */
+    .range-row { display:flex; gap:6px; margin-bottom:18px; flex-wrap:wrap; }
+    .range-btn {
+      padding:7px 14px; border-radius:100px; flex:1; min-width:0;
+      background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08);
+      color:var(--text-2); font-family:'DM Sans',sans-serif;
+      font-size:10px; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+      cursor:pointer; transition:all .22s;
+    }
+    .range-btn.active { background:rgba(245,196,0,.12); border-color:rgba(245,196,0,.32); color:var(--solar); }
+    .range-btn:hover:not(.active) { border-color:rgba(245,196,0,.2); color:var(--text-1); }
+
+    .chart-card {
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:18px; padding:18px 14px 14px; backdrop-filter:blur(20px);
+      margin-bottom:12px; position:relative;
+    }
+    .chart-card-title {
+      font-size:8.5px; font-weight:600; letter-spacing:.28em; text-transform:uppercase;
+      color:var(--solar); margin-bottom:14px; opacity:.85;
+    }
+    .chart-wrap { height:200px; position:relative; }
+    .chart-loading {
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      color:var(--text-3); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase;
+      background:var(--bg-card); border-radius:10px; z-index:2;
+    }
+    .chart-loading.hidden { display:none; }
+
+    /* ── TOAST ── */
+    .toast {
+      position:fixed; bottom:28px; left:50%;
+      transform:translateX(-50%) translateY(80px);
+      background:rgba(2,6,9,.96); border:1px solid var(--border);
+      border-radius:100px; padding:11px 22px;
+      font-size:12.5px; font-weight:500; letter-spacing:.04em; color:var(--text-1);
+      backdrop-filter:blur(20px); transition:transform .32s cubic-bezier(.34,1.56,.64,1);
+      z-index:200; white-space:nowrap; pointer-events:none;
+      box-shadow:0 8px 32px rgba(0,0,0,.5);
+    }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+    .toast.ok   { border-color:rgba(77,190,138,.4);  color:var(--home); }
+    .toast.err  { border-color:rgba(255,68,85,.4);   color:var(--danger); }
+
+    @media(max-width:380px) { .app { padding:20px 12px 48px; } }
+    @media(min-width:600px) { .app { padding-top:40px; } }
+  </style>
+</head>
+<body>
+
+<div class="scene">
+  <div class="scene-gradient"></div>
+  <div class="scene-lines"></div>
+  <div class="scene-glow"></div>
+  <div class="particles">
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+    <div class="particle"></div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div>
+      <div class="brand-name">Plenticore</div>
+      <div class="brand-tag">Kostal · PV-Wechselrichter</div>
+    </div>
+    <div class="hdr-actions">
+      <button class="icon-btn" id="settingsBtn" onclick="toggleSettings()" title="Einstellungen">⚙</button>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tabLive"    onclick="switchTab('live')">Live</button>
+    <button class="tab-btn"        id="tabHistory" onclick="switchTab('history')">Verlauf</button>
+  </div>
+
+  <!-- Settings -->
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-inner">
+      <div>
+        <label class="field-label" for="fhemUrlInput">FHEM URL</label>
+        <input class="field-input" type="url" id="fhemUrlInput" placeholder="/fhem" oninput="saveSettings()">
+      </div>
+      <div>
+        <label class="field-label" for="deviceInput">FHEM Device-Name</label>
+        <input class="field-input" type="text" id="deviceInput" placeholder="Plenticore_Wechselrichter" oninput="saveSettings()">
+      </div>
+      <div>
+        <label class="field-label" for="dblogInput">DbLog Device-Name</label>
+        <input class="field-input" type="text" id="dblogInput" placeholder="DBLOG" oninput="saveSettings()">
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ VIEW: LIVE ═══ -->
+  <div id="viewLive">
+
+  <!-- Status -->
+  <div class="status-row">
+    <div class="status-chip idle" id="statusChip">
+      <div class="status-dot"></div>
+      <span id="statusLabel">Verbinde…</span>
+    </div>
+    <div class="pv-chip idle" id="pvChip">
+      <span id="pvChipIcon">☀</span>
+      <span id="pvChipLabel">Standby</span>
+    </div>
+  </div>
+
+  <!-- Energy Flow Diagram -->
+  <div class="flow-wrap">
+    <svg id="flowSvg" viewBox="0 0 340 292">
+      <defs>
+        <filter id="fGlow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="fSoft" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- ── Background flow lines ── -->
+      <line id="bg-pv"  class="fl-bg" x1="92" y1="66" x2="146" y2="130"/>
+      <line id="bg-grd" class="fl-bg" x1="248" y1="66" x2="194" y2="130"/>
+      <line id="bg-hom" class="fl-bg" x1="194" y1="160" x2="248" y2="224"/>
+      <line id="bg-bat" class="fl-bg" x1="146" y1="160" x2="92" y2="224"/>
+
+      <!-- ── Animated flow lines ── -->
+      <line id="fl-pv"  class="fl-anim" x1="92" y1="66" x2="146" y2="130" stroke="rgba(245,196,0,.08)"/>
+      <line id="fl-grd" class="fl-anim" x1="248" y1="66" x2="194" y2="130" stroke="rgba(255,255,255,.05)"/>
+      <line id="fl-hom" class="fl-anim" x1="194" y1="160" x2="248" y2="224" stroke="rgba(255,255,255,.05)"/>
+      <line id="fl-bat" class="fl-anim" x1="146" y1="160" x2="92" y2="224" stroke="rgba(255,255,255,.05)"/>
+
+      <!-- ── WR Center ── -->
+      <rect x="136" y="122" width="68" height="46" rx="12"
+        fill="rgba(245,196,0,.06)" stroke="rgba(245,196,0,.28)" stroke-width="1.2" filter="url(#fSoft)"/>
+      <text x="170" y="140" text-anchor="middle" fill="rgba(245,196,0,.6)" font-size="7.5" font-family="DM Sans,sans-serif" font-weight="600" letter-spacing="1.5">PLENTICORE</text>
+      <text x="170" y="157" text-anchor="middle" fill="rgba(230,240,250,.4)" font-size="8" font-family="DM Sans,sans-serif">Wechselrichter</text>
+
+      <!-- ── PV Node (top-left): icon top / value middle / label bottom ── -->
+      <rect x="18" y="30" width="74" height="52" rx="12"
+        fill="rgba(245,196,0,.06)" stroke="rgba(245,196,0,.22)" stroke-width="1"/>
+      <g transform="translate(48, 36)">
+        <rect width="14" height="11" rx="1.2" fill="none" stroke="rgba(245,196,0,.55)" stroke-width="1.2"/>
+        <line x1="0" y1="3.7" x2="14" y2="3.7" stroke="rgba(245,196,0,.35)" stroke-width=".8"/>
+        <line x1="0" y1="7.3" x2="14" y2="7.3" stroke="rgba(245,196,0,.35)" stroke-width=".8"/>
+        <line x1="4.7" y1="0" x2="4.7" y2="11" stroke="rgba(245,196,0,.35)" stroke-width=".8"/>
+        <line x1="9.3" y1="0" x2="9.3" y2="11" stroke="rgba(245,196,0,.35)" stroke-width=".8"/>
+      </g>
+      <text id="val-pv" x="55" y="63" text-anchor="middle" fill="rgba(245,196,0,.9)" font-size="12" font-family="DM Sans,sans-serif" font-weight="500">– W</text>
+      <text x="55" y="75" text-anchor="middle" fill="rgba(230,240,250,.38)" font-size="8" font-family="DM Sans,sans-serif">PV-Anlage</text>
+
+      <!-- ── Grid Node (top-right): icon top / value middle / label bottom ── -->
+      <rect x="248" y="30" width="74" height="52" rx="12"
+        fill="rgba(255,168,32,.05)" stroke="rgba(255,168,32,.2)" stroke-width="1" id="rect-grd"/>
+      <g transform="translate(278, 36)" id="icon-grd">
+        <line x1="3"  y1="0"  x2="3"  y2="11" stroke="rgba(255,168,32,.55)" stroke-width="1.2"/>
+        <line x1="11" y1="0"  x2="11" y2="11" stroke="rgba(255,168,32,.55)" stroke-width="1.2"/>
+        <line x1="0"  y1="3"  x2="14" y2="3"  stroke="rgba(255,168,32,.38)" stroke-width=".8"/>
+        <line x1="0"  y1="8"  x2="14" y2="8"  stroke="rgba(255,168,32,.38)" stroke-width=".8"/>
+      </g>
+      <text id="val-grd" x="285" y="63" text-anchor="middle" fill="rgba(255,168,32,.9)" font-size="12" font-family="DM Sans,sans-serif" font-weight="500">– W</text>
+      <text id="lbl-grd" x="285" y="75" text-anchor="middle" fill="rgba(230,240,250,.38)" font-size="8" font-family="DM Sans,sans-serif">Netz</text>
+
+      <!-- ── Home Node (bottom-right): icon top / value middle / label bottom ── -->
+      <rect x="248" y="214" width="74" height="52" rx="12"
+        fill="rgba(77,190,138,.05)" stroke="rgba(77,190,138,.22)" stroke-width="1"/>
+      <g transform="translate(278, 220)">
+        <path d="M7 0 L14 6 L13 6 L13 13 L1 13 L1 6 L0 6 Z" fill="none" stroke="rgba(77,190,138,.55)" stroke-width="1.2" stroke-linejoin="round"/>
+        <rect x="4.5" y="7.5" width="5" height="5.5" fill="rgba(77,190,138,.22)" stroke="rgba(77,190,138,.4)" stroke-width=".8"/>
+      </g>
+      <text id="val-hom" x="285" y="248" text-anchor="middle" fill="rgba(77,190,138,.9)" font-size="12" font-family="DM Sans,sans-serif" font-weight="500">– W</text>
+      <text x="285" y="260" text-anchor="middle" fill="rgba(230,240,250,.38)" font-size="8" font-family="DM Sans,sans-serif">Hausverbrauch</text>
+
+      <!-- ── Battery Node (bottom-left): icon top / value middle / label bottom ── -->
+      <g id="node-bat">
+        <rect x="18" y="214" width="74" height="52" rx="12"
+          fill="rgba(59,191,255,.05)" stroke="rgba(59,191,255,.2)" stroke-width="1" id="rect-bat"/>
+        <g transform="translate(46, 221)">
+          <rect width="16" height="9" rx="1.5" fill="none" stroke="rgba(59,191,255,.55)" stroke-width="1.2"/>
+          <rect x="16" y="2.5" width="2" height="4" rx=".8" fill="rgba(59,191,255,.45)"/>
+          <rect id="bat-fill-icon" x="1" y="1" width="14" height="7" rx=".8" fill="rgba(59,191,255,.35)"/>
+        </g>
+        <text id="val-bat" x="55" y="248" text-anchor="middle" fill="rgba(59,191,255,.9)" font-size="12" font-family="DM Sans,sans-serif" font-weight="500">– W</text>
+        <text id="val-soc-svg" x="55" y="260" text-anchor="middle" fill="rgba(230,240,250,.38)" font-size="8" font-family="DM Sans,sans-serif">Batterie –%</text>
+      </g>
+
+    </svg>
+  </div>
+
+  <!-- Value Cards 2×2 -->
+  <div class="cards-grid">
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon ci-solar">☀</div>
+        <span class="card-title">PV-Generator</span>
+      </div>
+      <div class="card-main">
+        <div class="card-val solar-v" id="card-pv">–<span class="u"> W</span></div>
+        <div class="card-sub" id="card-pv-sub">Momentanleistung</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon ci-grid">⚡</div>
+        <span class="card-title">Netz</span>
+      </div>
+      <div class="card-main">
+        <div class="card-val" id="card-grd">–<span class="u"> W</span></div>
+        <div class="card-sub" id="card-grd-sub">–</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon ci-home">🏠</div>
+        <span class="card-title">Hausverbrauch</span>
+      </div>
+      <div class="card-main">
+        <div class="card-val home-v" id="card-hom">–<span class="u"> W</span></div>
+        <div class="card-sub">Verbrauch gesamt</div>
+      </div>
+    </div>
+
+    <div class="card" id="card-bat-wrapper">
+      <div class="card-header">
+        <div class="card-icon ci-bat" id="ci-bat">🔋</div>
+        <span class="card-title">Batterie</span>
+      </div>
+      <div class="card-main">
+        <div class="card-val" id="card-bat">–<span class="u"> W</span></div>
+        <div class="card-sub" id="card-bat-sub">–</div>
+      </div>
+      <div class="soc-bar-wrap">
+        <div class="soc-bar-head">
+          <span class="soc-bar-lbl">Ladezustand</span>
+          <span class="soc-bar-val" id="soc-val">–%</span>
+        </div>
+        <div class="soc-track"><div class="soc-fill" id="soc-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Statistics Accordion -->
+  <div class="stat-head" id="statHead" onclick="toggleStats()">
+    <span>PV-Statistik</span>
+    <span class="stat-arrow" id="statArrow">▾</span>
+  </div>
+  <div class="stat-panel" id="statPanel">
+    <div class="stat-tabs">
+      <button class="stat-tab active" onclick="setStat('day')">Heute</button>
+      <button class="stat-tab"        onclick="setStat('month')">Monat</button>
+      <button class="stat-tab"        onclick="setStat('year')">Jahr</button>
+      <button class="stat-tab"        onclick="setStat('total')">Gesamt</button>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">PV-Ertrag</div>
+        <div class="stat-val solar-v" id="st-yield">–<span class="u"> kWh</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Hausverbrauch</div>
+        <div class="stat-val home-v" id="st-home">–<span class="u"> kWh</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Autarkiequote</div>
+        <div class="stat-val autarky-v" id="st-autarky">–<span class="u"> %</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Eigenverbrauch</div>
+        <div class="stat-val own-v" id="st-own">–<span class="u"> %</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">CO₂-Einsparung</div>
+        <div class="stat-val solar-v" id="st-co2">–<span class="u"> kg</span></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Einspeisung</div>
+        <div class="stat-val" id="st-grid" style="color:var(--grid-in)">–<span class="u"> kWh</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Refresh -->
+  <div class="action-row">
+    <button class="btn-refresh" id="refreshBtn" onclick="poll()">
+      <span class="refresh-ico" id="refreshIco">↻</span>
+      <span>Aktualisieren</span>
+    </button>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-info">
+    <div class="fault-line" id="faultLine"></div>
+    <div class="update-line" id="updateLine"></div>
+  </div>
+
+  </div><!-- /viewLive -->
+
+  <!-- ═══ VIEW: HISTORY ═══ -->
+  <div id="viewHistory" style="display:none">
+
+    <div class="range-row">
+      <button class="range-btn" data-h="6"   onclick="setRange(6)">6 h</button>
+      <button class="range-btn active" data-h="24"  onclick="setRange(24)">24 h</button>
+      <button class="range-btn" data-h="168" onclick="setRange(168)">7 Tage</button>
+      <button class="range-btn" data-h="720" onclick="setRange(720)">30 Tage</button>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-title">PV-GENERATOR · Erzeugung</div>
+      <div class="chart-wrap">
+        <div class="chart-loading" id="loadPv">Lade …</div>
+        <canvas id="chartPv"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-title">NETZ · Einspeisung / Bezug</div>
+      <div class="chart-wrap">
+        <div class="chart-loading" id="loadGrid">Lade …</div>
+        <canvas id="chartGrid"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-title">HAUSVERBRAUCH</div>
+      <div class="chart-wrap">
+        <div class="chart-loading" id="loadHome">Lade …</div>
+        <canvas id="chartHome"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card" id="chartBatCard">
+      <div class="chart-card-title">BATTERIE · Leistung & Ladezustand</div>
+      <div class="chart-wrap">
+        <div class="chart-loading" id="loadBat">Lade …</div>
+        <canvas id="chartBat"></canvas>
+      </div>
+    </div>
+
+    <div class="footer-info" style="margin-top:10px">
+      <div class="update-line" id="histUpdateLine"></div>
+    </div>
+
+  </div><!-- /viewHistory -->
+
+</div><!-- .app -->
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════ */
+let fhemUrl    = localStorage.getItem('fhemUrl_pc')    || '/fhem';
+let deviceName = localStorage.getItem('deviceName_pc') || 'Plenticore_Wechselrichter';
+let dbLogName  = localStorage.getItem('dbLogName_pc')  || 'DBLOG';
+let csrfToken  = '';
+let pollHandle = null;
+let activeTab  = 'live';
+let histRange  = 24;
+let charts     = {};
+let historyLoaded = false;
+let statPeriod = 'day';
+let lastReadings = null;
+
+document.getElementById('fhemUrlInput').value = fhemUrl;
+document.getElementById('deviceInput').value  = deviceName;
+document.getElementById('dblogInput').value   = dbLogName;
+
+/* ═══════════════════════════════════════════
+   SETTINGS / TOGGLES
+═══════════════════════════════════════════ */
+function toggleSettings() {
+  const p = document.getElementById('settingsPanel');
+  p.classList.toggle('open');
+  document.getElementById('settingsBtn').classList.toggle('active', p.classList.contains('open'));
+}
+
+function saveSettings() {
+  fhemUrl    = document.getElementById('fhemUrlInput').value.trim() || '/fhem';
+  deviceName = document.getElementById('deviceInput').value.trim()  || 'Plenticore_Wechselrichter';
+  dbLogName  = document.getElementById('dblogInput').value.trim()   || 'DBLOG';
+  localStorage.setItem('fhemUrl_pc',    fhemUrl);
+  localStorage.setItem('deviceName_pc', deviceName);
+  localStorage.setItem('dbLogName_pc',  dbLogName);
+}
+
+function toggleStats() {
+  const p = document.getElementById('statPanel');
+  const h = document.getElementById('statHead');
+  p.classList.toggle('open');
+  h.classList.toggle('open', p.classList.contains('open'));
+}
+
+/* ═══════════════════════════════════════════
+   FHEM API
+═══════════════════════════════════════════ */
+function csrfParam() { return csrfToken ? `&fwcsrf=${csrfToken}` : ''; }
+
+async function fetchCsrf() {
+  try {
+    const res = await fetch(`${fhemUrl}?XHR=1`, { mode:'cors' });
+    const t   = res.headers.get('X-FHEM-csrfToken');
+    if (t) csrfToken = t;
+  } catch(_) {}
+}
+
+async function fhemJsonList() {
+  const res  = await fetch(
+    `${fhemUrl}?cmd=jsonlist2+${encodeURIComponent(deviceName)}&XHR=1${csrfParam()}`,
+    { mode:'cors' }
+  );
+  const json = await res.json();
+  return json?.Results?.[0]?.Readings ?? null;
+}
+
+/* ═══════════════════════════════════════════
+   POLL
+═══════════════════════════════════════════ */
+async function poll() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  try {
+    const r = await fhemJsonList();
+    if (!r) throw new Error('empty');
+    lastReadings = r;
+    applyReadings(r);
+    setOnline();
+  } catch(_) {
+    setOffline();
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+function startPoll() {
+  poll();
+  clearInterval(pollHandle);
+  pollHandle = setInterval(poll, 30000);
+}
+
+/* ═══════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════ */
+function num(r, k) {
+  const v = r[k]?.Value;
+  if (v == null) return null;
+  const n = parseFloat(v);
+  return isNaN(n) ? null : n;
+}
+
+function fmtPower(w) {
+  if (w === null) return '–';
+  const abs = Math.abs(w);
+  if (abs >= 1000) return (w / 1000).toFixed(2);
+  return String(Math.round(w));
+}
+
+function powerUnit(w) {
+  if (w === null) return 'W';
+  return Math.abs(w) >= 1000 ? 'kW' : 'W';
+}
+
+function fmtNum(n, dec) {
+  if (n === null) return '–';
+  return dec > 0 ? n.toFixed(dec) : String(Math.round(n));
+}
+
+/* ═══════════════════════════════════════════
+   FLOW LINE UPDATER
+═══════════════════════════════════════════ */
+function setFlow(lineId, isActive, isReverse, color) {
+  const el = document.getElementById(lineId);
+  if (!el) return;
+  el.style.stroke = isActive ? color : 'rgba(255,255,255,.04)';
+  el.classList.remove('flow-fwd', 'flow-rev');
+  if (isActive) el.classList.add(isReverse ? 'flow-rev' : 'flow-fwd');
+}
+
+/* ═══════════════════════════════════════════
+   APPLY READINGS
+═══════════════════════════════════════════ */
+function applyReadings(r) {
+  const pvW   = num(r, 'PvGenerator');
+  const invW  = num(r, 'Inverter');
+  const homW  = num(r, 'HomeConsumption');
+  const grdW  = num(r, 'Grid');
+  const batW  = num(r, 'Battery');
+  const batSoc = num(r, 'Battery_SoC');
+
+  /* ── PV Chip ── */
+  const pvActive = pvW !== null && pvW > 5;
+  document.getElementById('pvChip').className  = 'pv-chip ' + (pvActive ? 'active' : 'idle');
+  document.getElementById('pvChipLabel').textContent = pvActive
+    ? fmtPower(pvW) + ' ' + powerUnit(pvW)
+    : 'Standby';
+
+  /* ── SVG flow values ── */
+  document.getElementById('val-pv').textContent = pvW !== null
+    ? fmtPower(pvW) + ' ' + powerUnit(pvW) : '– W';
+
+  const grdAbs = grdW !== null ? Math.abs(grdW) : null;
+  document.getElementById('val-grd').textContent = grdAbs !== null
+    ? fmtPower(grdAbs) + ' ' + powerUnit(grdAbs) : '– W';
+  const isGridIn = grdW !== null && grdW > 5;
+  const isGridOut = grdW !== null && grdW < -5;
+  document.getElementById('val-grd').setAttribute('fill',
+    isGridIn ? 'rgba(255,168,32,.9)' : isGridOut ? 'rgba(140,180,212,.9)' : 'rgba(230,240,250,.4)');
+  document.getElementById('lbl-grd').textContent = isGridIn ? 'Einspeisung' : isGridOut ? 'Bezug' : 'Netz';
+
+  document.getElementById('val-hom').textContent = homW !== null
+    ? fmtPower(homW) + ' ' + powerUnit(homW) : '– W';
+
+  const batAbs = batW !== null ? Math.abs(batW) : null;
+  const isBatCh  = batW !== null && batW < -5;
+  const isBatDis = batW !== null && batW > 5;
+  document.getElementById('val-bat').textContent = batAbs !== null
+    ? fmtPower(batAbs) + ' ' + powerUnit(batAbs) : '– W';
+  document.getElementById('val-bat').setAttribute('fill',
+    isBatCh ? 'rgba(59,191,255,.9)' : isBatDis ? 'rgba(26,143,212,.9)' : 'rgba(230,240,250,.4)');
+  document.getElementById('val-soc-svg').textContent = batSoc !== null
+    ? 'Batterie ' + Math.round(batSoc) + ' %' : 'Batterie –%';
+
+  /* ── Battery SoC icon fill ── */
+  if (batSoc !== null) {
+    const iconW = Math.max(0, Math.min(14, (batSoc / 100) * 14));
+    document.getElementById('bat-fill-icon').setAttribute('width', iconW.toFixed(1));
+  }
+
+  /* ── Flow line animations ── */
+  setFlow('fl-pv',  pvActive,              false,    '#f5c400');
+  setFlow('fl-grd', isGridIn || isGridOut, isGridOut, isGridOut ? '#8cb4d4' : '#ffa820');
+  setFlow('fl-hom', homW !== null && homW > 5, false, '#4dbe8a');
+  setFlow('fl-bat', isBatCh || isBatDis,  isBatDis,  isBatCh ? '#3bbfff' : '#1a8fd4');
+
+  /* ── Cards ── */
+  const pvEl = document.getElementById('card-pv');
+  pvEl.innerHTML = fmtPower(pvW) + '<span class="u"> ' + powerUnit(pvW) + '</span>';
+  pvEl.className = 'card-val solar-v';
+
+  const grdEl  = document.getElementById('card-grd');
+  grdEl.innerHTML = fmtPower(grdAbs) + '<span class="u"> ' + powerUnit(grdAbs) + '</span>';
+  grdEl.className = 'card-val ' + (isGridIn ? 'grid-in-v' : isGridOut ? 'grid-out-v' : '');
+  document.getElementById('card-grd-sub').textContent =
+    isGridIn ? '→ Einspeisung' : isGridOut ? '← Netzbezug' : 'kein Netzaustausch';
+
+  const homEl = document.getElementById('card-hom');
+  homEl.innerHTML = fmtPower(homW) + '<span class="u"> ' + powerUnit(homW) + '</span>';
+
+  const batEl  = document.getElementById('card-bat');
+  batEl.innerHTML = fmtPower(batAbs) + '<span class="u"> ' + powerUnit(batAbs) + '</span>';
+  batEl.className = 'card-val ' + (isBatCh ? 'bat-ch-v' : isBatDis ? 'bat-dis-v' : '');
+  document.getElementById('card-bat-sub').textContent =
+    isBatCh ? '↓ Laden' : isBatDis ? '↑ Entladen' : 'kein Austausch';
+
+  const soc = batSoc !== null ? Math.max(0, Math.min(100, batSoc)) : 0;
+  document.getElementById('soc-val').textContent = batSoc !== null ? Math.round(batSoc) + ' %' : '–%';
+  document.getElementById('soc-bar').style.width = batSoc !== null ? soc + '%' : '0%';
+
+  /* ── Battery visibility ── */
+  const hasBat = batSoc !== null && batSoc > 0;
+  document.getElementById('node-bat').style.display = hasBat ? '' : 'none';
+  document.getElementById('card-bat-wrapper').style.display = hasBat ? '' : 'none';
+
+  /* ── Statistics (refresh current period) ── */
+  renderStats(r, statPeriod);
+
+  /* ── Footer ── */
+  const lu = r['lastUpdate']?.Value;
+  document.getElementById('updateLine').textContent =
+    'Datenstand: ' + (lu || new Date().toLocaleTimeString('de-DE'));
+}
+
+/* ═══════════════════════════════════════════
+   STATISTICS
+═══════════════════════════════════════════ */
+function setStat(period) {
+  statPeriod = period;
+  document.querySelectorAll('.stat-tab').forEach((t, i) => {
+    t.classList.toggle('active', ['day','month','year','total'][i] === period);
+  });
+  if (lastReadings) renderStats(lastReadings, period);
+}
+
+function renderStats(r, period) {
+  const P = period.charAt(0).toUpperCase() + period.slice(1);
+  const v = k => num(r, k) ?? null;
+
+  const yield_ = v('Statistic_Yield_' + P);
+  const home_  = v('Statistic_EnergyHome_' + P);
+  const autarky = v('Statistic_Autarky_' + P);
+  const own_   = v('Statistic_OwnConsumptionRate_' + P);
+  const co2_   = v('Statistic_CO2Saving_' + P);
+  /* Grid feed-in = yield * (1 - own/100) in kWh */
+  const gridFeedIn = (yield_ !== null && own_ !== null)
+    ? (yield_ * (1 - own_ / 100))
+    : null;
+
+  document.getElementById('st-yield').innerHTML  = fmtNum(yield_,  2) + '<span class="u"> kWh</span>';
+  document.getElementById('st-home').innerHTML   = fmtNum(home_,   2) + '<span class="u"> kWh</span>';
+  document.getElementById('st-autarky').innerHTML= fmtNum(autarky, 0) + '<span class="u"> %</span>';
+  document.getElementById('st-own').innerHTML    = fmtNum(own_,    0) + '<span class="u"> %</span>';
+  document.getElementById('st-co2').innerHTML    = fmtNum(co2_,    1) + '<span class="u"> kg</span>';
+  document.getElementById('st-grid').innerHTML   = fmtNum(gridFeedIn, 2) + '<span class="u"> kWh</span>';
+}
+
+/* ═══════════════════════════════════════════
+   STATUS
+═══════════════════════════════════════════ */
+function setOnline() {
+  document.getElementById('statusChip').className    = 'status-chip connected';
+  document.getElementById('statusLabel').textContent = 'Verbunden';
+  document.getElementById('faultLine').textContent   = '';
+  document.getElementById('faultLine').className     = 'fault-line';
+}
+
+function setOffline() {
+  document.getElementById('statusChip').className    = 'status-chip error';
+  document.getElementById('statusLabel').textContent = 'Nicht erreichbar';
+  document.getElementById('faultLine').textContent   = 'FHEM nicht erreichbar — URL in den Einstellungen prüfen';
+  document.getElementById('faultLine').className     = 'fault-line err';
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = 'toast show' + (type ? ' ' + type : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+/* ═══════════════════════════════════════════
+   TAB SWITCHING
+═══════════════════════════════════════════ */
+function switchTab(tab) {
+  activeTab = tab;
+  document.getElementById('viewLive').style.display    = tab === 'live'    ? '' : 'none';
+  document.getElementById('viewHistory').style.display = tab === 'history' ? '' : 'none';
+  document.getElementById('tabLive').classList.toggle('active',    tab === 'live');
+  document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+  if (tab === 'history') loadHistory();
+}
+
+/* ═══════════════════════════════════════════
+   HISTORY — RANGE
+═══════════════════════════════════════════ */
+function setRange(h) {
+  histRange = h;
+  historyLoaded = false;
+  document.querySelectorAll('.range-btn').forEach(b =>
+    b.classList.toggle('active', +b.dataset.h === h));
+  loadHistory();
+}
+
+/* ═══════════════════════════════════════════
+   HISTORY — DbLog FETCH
+═══════════════════════════════════════════ */
+function localDateStr(d) {
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}_${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+async function fetchDbLog(reading, hours) {
+  const to   = new Date();
+  const from = new Date(to - hours * 3600000);
+  const cmd  = `get ${dbLogName} - - ${localDateStr(from)} ${localDateStr(to)} ${deviceName}:${reading}`;
+  try {
+    const res  = await fetch(`${fhemUrl}?cmd=${encodeURIComponent(cmd)}&XHR=1${csrfParam()}`, { mode:'cors' });
+    const text = await res.text();
+    return text.trim().split('\n').filter(l => l.trim()).map(line => {
+      const parts = line.trim().split(/\s+/);
+      return { x: new Date(parts[0].replace('_', 'T')), y: parseFloat(parts[1]) };
+    }).filter(p => !isNaN(p.y));
+  } catch(_) { return []; }
+}
+
+/* ═══════════════════════════════════════════
+   HISTORY — CHART.JS
+═══════════════════════════════════════════ */
+const TICK_COLOR = 'rgba(230,240,250,.32)';
+const GRID_COLOR = 'rgba(255,255,255,.055)';
+const FONT       = { family:"'DM Sans',sans-serif", size:10 };
+const TIP_BG     = 'rgba(2,6,9,.94)';
+
+function axisBase(position, title, drawGrid = true) {
+  return {
+    type:'linear', position,
+    title:{ display:!!title, text:title||'', color:TICK_COLOR, font:FONT },
+    grid:{ color: drawGrid ? GRID_COLOR : 'transparent' },
+    ticks:{ color:TICK_COLOR, font:FONT, maxTicksLimit:6 },
+    border:{ color:'rgba(245,196,0,.1)' },
+  };
+}
+
+function makeChart(id, datasets, yLeftTitle, yRightTitle, hours) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+  const unit = hours <= 24 ? 'hour' : 'day';
+  const scales = {
+    x: {
+      type:'time',
+      time:{ unit, displayFormats:{ hour:'HH:mm', day:'dd.MM.' } },
+      grid:{ color:GRID_COLOR },
+      ticks:{ color:TICK_COLOR, font:FONT, maxTicksLimit:8 },
+      border:{ color:'rgba(245,196,0,.1)' },
+    },
+    yLeft: axisBase('left', yLeftTitle),
+  };
+  if (yRightTitle) scales.yRight = { ...axisBase('right', yRightTitle, false), grid:{ drawOnChartArea:false } };
+  charts[id] = new Chart(ctx, {
+    type:'line',
+    data:{ datasets },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{ duration:600 },
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ labels:{ color:'rgba(230,240,250,.55)', font:FONT, boxWidth:22, padding:14, usePointStyle:true, pointStyle:'line' } },
+        tooltip:{ backgroundColor:TIP_BG, borderColor:'rgba(245,196,0,.2)', borderWidth:1, titleColor:'rgba(230,240,250,.55)', bodyColor:'rgba(230,240,250,.88)', padding:10, cornerRadius:10 },
+      },
+      elements:{ point:{ radius:0, hitRadius:10 }, line:{ tension:0.28, borderWidth:1.8 } },
+      scales,
+    }
+  });
+}
+
+function ds(label, data, color, yAxisID, opts = {}) {
+  return {
+    label, data, yAxisID,
+    borderColor: color,
+    backgroundColor: opts.fill ? color.replace(')',',0.08)').replace('rgb','rgba') : 'transparent',
+    fill: !!opts.fill, borderDash: opts.dashed ? [5,3] : [],
+    ...opts,
+  };
+}
+
+/* ═══════════════════════════════════════════
+   HISTORY — LOAD CHARTS
+═══════════════════════════════════════════ */
+async function loadHistory() {
+  if (historyLoaded) return;
+  const h = histRange;
+
+  ['loadPv','loadGrid','loadHome','loadBat'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('hidden');
+  });
+
+  const now = new Date().toLocaleString('de-DE',{dateStyle:'short',timeStyle:'short'});
+  document.getElementById('histUpdateLine').textContent = 'Zeitraum: ' + h + ' h | Stand: ' + now;
+
+  const [pvData, grdData, homData, batData, socData] = await Promise.all([
+    fetchDbLog('PvGenerator',    h),
+    fetchDbLog('Grid',           h),
+    fetchDbLog('HomeConsumption',h),
+    fetchDbLog('Battery',        h),
+    fetchDbLog('Battery_SoC',    h),
+  ]);
+
+  ['loadPv','loadGrid','loadHome','loadBat'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('hidden');
+  });
+
+  makeChart('chartPv', [
+    ds('PV-Ertrag (W)', pvData, '#f5c400', 'yLeft', { fill:true }),
+  ], 'Leistung (W)', null, h);
+
+  makeChart('chartGrid', [
+    ds('Netz (W, + Einspeisung)', grdData, '#ffa820', 'yLeft', { fill:true }),
+  ], 'Leistung (W)', null, h);
+
+  makeChart('chartHome', [
+    ds('Hausverbrauch (W)', homData, '#4dbe8a', 'yLeft', { fill:true }),
+  ], 'Leistung (W)', null, h);
+
+  const hasBatData = batData.length > 0 || socData.length > 0;
+  document.getElementById('chartBatCard').style.display = hasBatData ? '' : 'none';
+  if (hasBatData) {
+    makeChart('chartBat', [
+      ds('Batterie (W, + Entladen)', batData, '#1a8fd4', 'yLeft',  { fill:true }),
+      ds('SoC (%)',                  socData, '#3bbfff', 'yRight'),
+    ], 'Leistung (W)', 'SoC (%)', h);
+  }
+
+  historyLoaded = true;
+}
+
+/* ═══════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════ */
+fetchCsrf().then(startPoll);
+</script>
+</body>
+</html>
