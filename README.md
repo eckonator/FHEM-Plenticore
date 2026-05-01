@@ -280,7 +280,7 @@ cp -r www/plenticore /opt/fhem/www/
 Aufruf im Browser:
 
 ```
-http://<fhem-ip>:8083/fhem/www/plenticore/
+http://<fhem-ip>:8083/fhem/www/plenticore/index.html
 ```
 
 Beim ersten Aufruf über das Einstellungs-Icon (⚙) konfigurieren:
